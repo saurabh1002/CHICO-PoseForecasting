@@ -45,7 +45,7 @@ class ConvTemporalGraphical(nn.Module):
         where
             :math:`N` is a batch size,
             :math:`K` is the spatial kernel size, as :math:`K == kernel_size[1]`,
-            :math:`T_{in}/T_{out}` is a length of input/output sequence,
+            :math:`T_{in} / T_{out}` is a length of input/output sequence,
             :math:`V` is the number of graph nodes. 
     """
     def __init__(self,
@@ -68,7 +68,6 @@ class ConvTemporalGraphical(nn.Module):
         self.T.data.uniform_(-stdv,stdv)
 
         '''
-        
         self.prelu = nn.PReLU()
         self.drp = nn.Dropout(0.1)
         self.bn = nn.BatchNorm2d(in_channels)
@@ -85,9 +84,6 @@ class ConvTemporalGraphical(nn.Module):
         x = torch.einsum('nctv,tvw->nctw', (x, self.A))
         # x = torch.einsum('nctv,wvtq->ncqw', (x, self.Z))
         return x.contiguous() 
-
-
-# In[3]:
 
 
 class ST_GCNN_layer(nn.Module):
@@ -121,13 +117,9 @@ class ST_GCNN_layer(nn.Module):
         assert self.kernel_size[1] % 2 == 1
         padding = ((self.kernel_size[0] - 1) // 2,(self.kernel_size[1] - 1) // 2)
         
-        
         self.gcn=ConvTemporalGraphical(time_dim,joints_dim, in_channels) # the convolution layer
         
         self.dsc=depthwise_separable_conv(in_channels, out_channels, K=1)
-        
-                
-
 
         if stride != 1 or in_channels != out_channels: 
 
@@ -138,16 +130,11 @@ class ST_GCNN_layer(nn.Module):
                     stride=(1, 1)),
                 nn.BatchNorm2d(out_channels),
             )
-            
-            
         else:
             self.residual=nn.Identity()
         
-        
         self.prelu = nn.PReLU()
         self.prelu2 = nn.PReLU()
-
-        
 
     def forward(self, x):
      #   assert A.shape[0] == self.kernel_size[1], print(A.shape[0],self.kernel_size)
@@ -159,11 +146,7 @@ class ST_GCNN_layer(nn.Module):
         return x
 
 
-# In[4]:
-
-
 class CNN_layer(nn.Module): # This is the simple CNN layer,that performs a 2-D convolution while maintaining the dimensions of the input(except for the features dimension)
-
     def __init__(self,
                  in_channels,
                  out_channels,
@@ -175,27 +158,16 @@ class CNN_layer(nn.Module): # This is the simple CNN layer,that performs a 2-D c
         self.kernel_size = kernel_size
         padding = ((kernel_size[0] - 1) // 2, (kernel_size[1] - 1) // 2) # padding so that both dimensions are maintained
         assert kernel_size[0] % 2 == 1 and kernel_size[1] % 2 == 1
-
-        
         
         self.block= [nn.Conv2d(in_channels,out_channels,kernel_size=kernel_size,padding=padding)
                      ,nn.BatchNorm2d(out_channels),nn.Dropout(dropout, inplace=True)] 
-
-
-
-            
         
         self.block=nn.Sequential(*self.block)
-        
 
     def forward(self, x):
         
         output= self.block(x)
         return output
-
-
-# In[11]:
-
 
 class Model(nn.Module):
     """ 
@@ -266,5 +238,4 @@ class Model(nn.Module):
         
         for i in range(1,self.n_txcnn_layers):
             x = self.prelus[i](self.txcnns[i](x)) +x # residual connection
-            
         return x
