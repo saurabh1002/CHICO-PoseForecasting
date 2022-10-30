@@ -5,7 +5,7 @@ from tqdm import tqdm
 from utils.bam_utils import unknown_pose_shape_to_known_shape, normalize
 
 class BAM_Motion3D(Dataset):
-    def __init__(self, data_dir, input_n, output_n, split):
+    def __init__(self, data_dir, input_n, output_n, split, train_data, eval_data):
         super(BAM_Motion3D, self).__init__()
         self.path_to_data = data_dir
         self.input_n = input_n
@@ -13,26 +13,17 @@ class BAM_Motion3D(Dataset):
 
         self.split = split
 
-        self.bam_file_names = self.get_bam_names()
+        self.bam_file_names = self.get_bam_names(train_data, eval_data)
 
         self.all_seqs = self.load_all()
 
-    def get_bam_names(self):
+    def get_bam_names(self, train_data, eval_data):
         seq_names = []
         if self.split == "train":
-            seq_names += np.loadtxt(
-                os.path.join(self.path_to_data, "bam_train.txt"), dtype=str, ndmin=1
-                ).tolist()
-
-        elif self.split == "validation":
-            seq_names += np.loadtxt(
-            os.path.join(self.path_to_data, "bam_val.txt"), dtype=str, ndmin=1
-            ).tolist()
-        
+            seq_names = train_data
+      
         elif self.split == "test":
-            seq_names += np.loadtxt(
-                os.path.join(self.path_to_data, "bam_test.txt"), dtype=str, ndmin=1
-                ).tolist()
+            seq_names = eval_data
         
         file_list = []
         for dataset in seq_names:
@@ -69,7 +60,6 @@ class BAM_Motion3D(Dataset):
                 sampled_seq = seq_sel
             else:
                 sampled_seq = np.concatenate((sampled_seq, seq_sel), axis=0)
-        print(sampled_seq.shape)
         return sampled_seq
     
     def __getitem__(self, item):

@@ -2,4 +2,6 @@ __pycache__/
 *.pyc
 *.png
 .vscode/
-.ipynb_checkpoints/
+.ipynb_checkpoints/output/
+.cache/
+.replik_paths.json
