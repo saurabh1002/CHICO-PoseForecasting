@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 from utils.loss_funcs import *
-from utils.BAM_motion_3d import BAM_Motion3D
+from utils.haggling import HagglingDataset
 
 def train(dataset, model):
     train_loss = []
@@ -57,14 +57,11 @@ def train(dataset, model):
             torch.save(model.state_dict(), f"{model_path}{model_name}_STS")
 
 
-datas = 'BAM'
-path = '/home/user/BAMp'
-
 input_n = 10 # number of frames to train on(default=10)
 output_n = 25 # number of frames to predict on
 input_dim = 3 # dimensions of the input coordinates(default=3)
 skip_rate = 1 # skip rate of frames for H3.6M (default=1) 
-joints_to_consider = 17  #joints
+joints_to_consider = 19  #joints
 
 # FLAGS FOR THE MODEL
 tcnn_layers = 4 # number of layers for the Temporal Convolution of the Decoder (default=4)
@@ -82,10 +79,10 @@ milestones = [10, 25, 30, 37] # the epochs after which the learning rate is adju
 
 gamma = 0.1 # gamma correction to the learning rate, after reaching the milestone epochs
 clip_grad = None # select max norm to clip gradients
-model_path = 'checkpoints-ABC' # path to the model checkpoint file
+model_path = 'checkpoints-haggling/' # path to the model checkpoint file
 if not os.path.isdir(model_path):
     os.makedirs(model_path)
-model_name = f"{datas}_3d_{output_n}_frames_ckpt" #the model name to save/load
+model_name = f"haggling_3d_{output_n}_frames_ckpt" #the model name to save/load
 
 from models.SeSGCN_teacher import Model
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -97,11 +94,7 @@ if use_scheduler:
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
 print('Total number of parameters of the network is: ' + str(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
-
-train_data = ['/0_1_0/A', '/0_1_0/B', '/0_1_0/C']
-eval_data = ['/0_1_0/D']
-
 # Load Data
-dataset = BAM_Motion3D(path, input_n, output_n, 'train', train_data, eval_data)
+dataset = HagglingDataset(input_n, output_n, 'train')
 
 train(dataset, model)
